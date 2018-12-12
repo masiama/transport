@@ -10,35 +10,33 @@ void main() async {
 	String themeName = prefs.getString('theme') ?? 'light';
 
   runApp(StreamBuilder(
-      stream: bloc.themeEnabled,
-      initialData: themeName,
-      builder: (context, snapshot) {
-        ThemeData theme = ThemeData();
-        if (snapshot.data == 'light') theme = ThemeData(
-          primaryColor: Colors.white,
-          canvasColor: Colors.grey[200],
-        );
-        if (snapshot.data == 'dark') theme = ThemeData.dark();
-        if (snapshot.data == 'darkBlack') {
-          theme = ThemeData.dark().copyWith(
-            canvasColor: Colors.black,
-            primaryColor: Colors.black,
-            scaffoldBackgroundColor: Colors.black,
-          );
-        }
-        print(snapshot.data);
-        return MaterialApp(
-          theme: theme,
-          home: TimetablePage()
-        );
-      },
-    ));
+    stream: bloc.themeEnabled,
+    initialData: themeName,
+    builder: (context, snapshot) {
+      ThemeData theme = ThemeData();
+      if (snapshot.data == 'light') theme = ThemeData(
+        primaryColor: Colors.white,
+        canvasColor: Colors.grey[200],
+      );
+      if (snapshot.data == 'dark') theme = ThemeData.dark();
+      if (snapshot.data == 'darkBlack') theme = ThemeData.dark().copyWith(
+        canvasColor: Colors.black,
+        primaryColor: Colors.black,
+        scaffoldBackgroundColor: Colors.black,
+      );
+      return MaterialApp(
+        theme: theme,
+        home: TimetablePage()
+      );
+    },
+  ));
 }
 
 class Bloc {
   final _themeController = StreamController<String>();
   get changeTheme => _themeController.sink.add;
   get themeEnabled => _themeController.stream;
+  void c() => _themeController.close();
 }
 
 final bloc = Bloc();
