@@ -7,6 +7,7 @@ final Map<String, String> themes = {
 	'light': 'Light',
 	'dark': 'Dark',
 	'darkBlack': 'Dark (pure black)',
+	'locationBased': 'Location Based',
 };
 
 class _SettingsStatePage extends State<SettingsPage> {
