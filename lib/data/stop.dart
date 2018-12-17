@@ -6,7 +6,7 @@ class Stop {
 	List<String> routes = [];
 
 	String getValue(List<String> lineItems, int index) {
-			return lineItems.length > index ? lineItems[index].trim() : '';
+		return lineItems.length > index ? lineItems[index].trim() : '';
 	}
 
 	void loadValues(List<String> lineItems, Stop prevStop) {

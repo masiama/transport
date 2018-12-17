@@ -30,6 +30,11 @@ Future<String> getThemeName() async {
 	return prefs.getString('theme') ?? 'light';
 }
 
+Future<void> saveThemeName(String theme) async {
+	final SharedPreferences prefs = await SharedPreferences.getInstance();
+	await prefs.setString('theme', theme);
+}
+
 Future<ThemeData> getTimeTheme() async {
 	final Location location = Location();
 	Map<String, double> currentLocation = {};

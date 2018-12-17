@@ -59,8 +59,8 @@ class TimetablePage extends StatefulWidget {
 }
 
 class StackPage extends StatelessWidget {
-	final FetchResponse _response;
 	StackPage(this._response);
+	final FetchResponse _response;
 
 	@override
 	Widget build(BuildContext context) {

@@ -6,11 +6,8 @@ import 'util.dart';
 import 'time.dart';
 
 class _StopsPageState extends State<StopsPage> {
+	_StopsPageState(this._route);
 	RouteType _route;
-
-	_StopsPageState(RouteType route) {
-		this._route = route;
-	}
 
 	@override
 	Widget build(BuildContext context) {

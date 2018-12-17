@@ -12,10 +12,9 @@ import 'data/stop.dart';
 import 'data/route.dart';
 
 class FetchResponse {
+	FetchResponse(this.success, [this.error]);
 	String error;
 	bool success;
-
-	FetchResponse(this.success, [this.error]);
 }
 
 const stopLinks = [

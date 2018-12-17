@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'util.dart';
 import 'data/theme.dart';
 
 final Map<String, String> themes = {
@@ -16,7 +15,7 @@ class _SettingsStatePage extends State<SettingsPage> {
 	@override
 	void initState() {
 		(() async {
-			final theme = await getTheme();
+			final theme = await getThemeName();
 			setState(() => _theme = theme);
 		})();
 		super.initState();
@@ -43,7 +42,7 @@ class _SettingsStatePage extends State<SettingsPage> {
 							isDense: true,
 							onChanged: (newValue) async {
 								setState(() => _theme = newValue);
-								await saveTheme(newValue);
+								await saveThemeName(newValue);
 								ThemeData theme = await getThemeByName(newValue);
 								bloc.changeTheme(theme);
 							},

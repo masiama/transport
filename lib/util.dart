@@ -1,4 +1,3 @@
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:connectivity/connectivity.dart';
 import 'package:flutter/material.dart';
 
@@ -81,14 +80,4 @@ String getTimeTitle(String weekdays) {
 
 Future<bool> isConnected() async {
 	return await Connectivity().checkConnectivity() != ConnectivityResult.none;
-}
-
-Future<void> saveTheme(String theme) async {
-	final SharedPreferences prefs = await SharedPreferences.getInstance();
-	await prefs.setString('theme', theme);
-}
-
-Future<String> getTheme() async {
-	final SharedPreferences prefs = await SharedPreferences.getInstance();
-	return prefs.getString('theme') ?? 'light';
 }
