@@ -44,7 +44,8 @@ class _SettingsStatePage extends State<SettingsPage> {
 							onChanged: (newValue) async {
 								setState(() => _theme = newValue);
 								await saveTheme(newValue);
-                bloc.changeTheme(newValue);
+                ThemeData theme = await getThemeByName(newValue);
+                bloc.changeTheme(theme);
 							},
 							items: themes.keys.map((key) => DropdownMenuItem(
 								value: key,

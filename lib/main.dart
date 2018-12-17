@@ -8,57 +8,93 @@ import 'package:flutter/services.dart';
 import 'sun_calc.dart';
 import 'timetable.dart';
 
-final lightTheme = ThemeData(
-	primaryColor: Colors.white,
-	canvasColor: Colors.grey[200],
-);
+final themes = {
+	'light': ThemeData(
+		primaryColor: Colors.white,
+		canvasColor: Colors.grey[200],
+	),
+	'dark': ThemeData.dark(),
+	'darkBlack': ThemeData.dark().copyWith(
+		canvasColor: Colors.black,
+		primaryColor: Colors.black,
+		scaffoldBackgroundColor: Colors.black,
+	),
+};
 
-final darkTheme = ThemeData.dark();
-final darkBlackTheme = ThemeData.dark().copyWith(
-	canvasColor: Colors.black,
-	primaryColor: Colors.black,
-	scaffoldBackgroundColor: Colors.black,
-);
+Future<ThemeData> getThemeByName(String themeName) async {
+	if (themeName == 'locationBased') return getLocationTheme();
+	return themes[themeName];
+}
+
+Future<String> getThemeName() async {
+	final SharedPreferences prefs = await SharedPreferences.getInstance();
+	return prefs.getString('theme') ?? 'light';
+}
+
+ThemeData getThemeByLocation(Map<String, double> currentLocation) {
+	bool isDay;
+	int nextTime;
+	final int msDay = 1000 * 60 * 60 * 24 * 1000;
+	final DateTime now = DateTime.now();
+	final DateTime tomorrow = DateTime.fromMicrosecondsSinceEpoch(now.millisecondsSinceEpoch * 1000 + msDay);
+
+	if (currentLocation.isNotEmpty) {
+		SunCalc sunCalcN = SunCalc(now, currentLocation['longitude'], currentLocation['latitude']);
+		SunCalc sunCalcT = SunCalc(tomorrow, currentLocation['longitude'], currentLocation['latitude']);
+
+		isDay = now.isAfter(sunCalcN.times['dawn']) && now.isBefore(sunCalcN.times['dusk']);
+
+		if (now.isBefore(sunCalcN.times['dawn'])) nextTime = sunCalcN.times['dawn'].millisecondsSinceEpoch;
+		else if (now.isAfter(sunCalcN.times['dusk'])) nextTime = sunCalcT.times['dawn'].millisecondsSinceEpoch;
+		else nextTime = sunCalcN.times['dusk'].millisecondsSinceEpoch;
+	} else {
+		isDay = now.hour > 7 && now.hour < 20;
+
+		if (now.hour < 8) nextTime = DateTime(now.year, now.month, now.day, 8).millisecondsSinceEpoch;
+		else if (now.hour > 19) nextTime = DateTime(tomorrow.year, tomorrow.month, tomorrow.day, 8).millisecondsSinceEpoch;
+		else nextTime = DateTime(now.year, now.month, now.day, 20).millisecondsSinceEpoch;
+	}
+
+	print('NOW - $now');
+	print('IS DAY - $isDay');
+	print('NEXT SWITCH TIME - ${DateTime.fromMillisecondsSinceEpoch(nextTime)}');
+
+	Future.delayed(Duration(milliseconds: nextTime - now.millisecondsSinceEpoch), () async {
+		String themeName = await getThemeName();
+		if (themeName != 'locationBased') return;
+		final ThemeData theme = await getThemeByName('locationBased');
+		bloc.changeTheme(theme);
+	});
+	return themes[isDay ? 'light' : 'dark'];
+}
 
 Future<ThemeData> getLocationTheme() async {
 	final Location location = Location();
-	final DateTime now = DateTime.now();
-	bool isDay = now.hour > 8 && now.hour < 20;
+	Map<String, double> currentLocation = {};
 
 	try {
-		final currentLocation = await location.getLocation();
-		SunCalc sunCalc = SunCalc(now, currentLocation['longitude'], currentLocation['latitude']);
-
-		isDay = now.isAfter(sunCalc.times['dawn']) && now.isBefore(sunCalc.times['dusk']);
+		currentLocation = await location.getLocation();
 	} on PlatformException {}
-	return isDay ? lightTheme : darkTheme;
+
+	return getThemeByLocation(currentLocation);
 }
 
 void main() async {
-	final SharedPreferences prefs = await SharedPreferences.getInstance();
-	String themeName = prefs.getString('theme') ?? 'light';
+	String themeName = await getThemeName();
+	ThemeData theme = await getThemeByName(themeName);
 
-	ThemeData locationBasedTheme = await getLocationTheme();
-
-	runApp(StreamBuilder(
+	runApp(StreamBuilder<ThemeData>(
 		stream: bloc.themeEnabled,
-		initialData: themeName,
-		builder: (context, snapshot) {
-			ThemeData theme = ThemeData();
-			if (snapshot.data == 'light') theme = lightTheme;
-			if (snapshot.data == 'dark') theme = darkTheme;
-			if (snapshot.data == 'darkBlack') theme = darkBlackTheme;
-			if (snapshot.data == 'locationBased') theme = locationBasedTheme;
-			return MaterialApp(
-				theme: theme,
-				home: TimetablePage()
-			);
-		},
+		initialData: theme,
+		builder: (context, snapshot) => MaterialApp(
+			theme: snapshot.data,
+			home: TimetablePage()
+		),
 	));
 }
 
 class Bloc {
-	final _themeController = StreamController<String>();
+	final _themeController = StreamController<ThemeData>();
 	get changeTheme => _themeController.sink.add;
 	get themeEnabled => _themeController.stream;
 	void c() => _themeController.close();
