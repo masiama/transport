@@ -1,8 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 
-import 'components/update_button.dart';
-
 import 'util.dart';
 import 'num_list.dart';
 import 'settings.dart';
@@ -60,37 +58,22 @@ class TimetablePage extends StatefulWidget {
 	TimetablePageState createState() => TimetablePageState();
 }
 
-class _StackPageState extends State<StackPage> {
-	bool _update = false;
-
-	@override
-	void initState() {
-		super.initState();
-		(() async {
-			final bool connected = await isConnected();
-			if (!connected) return;
-
-			final bool update = await toUpdate();
-			if (update) setState(() => _update = update);
-		})();
-	}
+class StackPage extends StatelessWidget {
+	final FetchResponse _response;
+	StackPage(this._response);
 
 	@override
 	Widget build(BuildContext context) {
-		final response = widget._response;
+		final response = _response;
 
-		if (response.success) return Stack(children: [
-			TabBarView(children: [
-				NumList('bus'),
-				NumList('tram'),
-				NumList('trol'),
-				NumList('minibus'),
-				NumList('expressbus'),
-				NumList('nightbus'),
-			]),
-			// TODO: Move button to keep it on every view
-			_update ? UpdateButton(timetableState) : null
-		]..removeWhere((widget) => widget == null));
+		if (response.success) return TabBarView(children: [
+			NumList('bus'),
+			NumList('tram'),
+			NumList('trol'),
+			NumList('minibus'),
+			NumList('expressbus'),
+			NumList('nightbus'),
+		]);
 
 		Container createLine(String str) => Container(child: Text(str), margin: EdgeInsets.only(bottom: 10));
 
@@ -104,10 +87,3 @@ class _StackPageState extends State<StackPage> {
 	}
 }
 
-class StackPage extends StatefulWidget {
-	final FetchResponse _response;
-	StackPage(this._response);
-
-	@override
-	_StackPageState createState() => _StackPageState();
-}

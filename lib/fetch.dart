@@ -114,6 +114,9 @@ Future<FetchResponse> fetchData() async {
 
 		await updateFiles();
 		await prefs.setBool('first', false);
+	} else if (connected) {
+		 final bool update = await toUpdate();
+		 if (update) await updateFiles();
 	}
 
 	await parseFiles();
