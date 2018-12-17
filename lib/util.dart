@@ -3,7 +3,6 @@ import 'package:connectivity/connectivity.dart';
 import 'package:flutter/material.dart';
 
 // TODO: NFC Reader in settings
-// TODO: Change theme depending on day
 // TODO: Stop search
 
 const Map<String, Color> colors = {

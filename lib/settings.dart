@@ -1,13 +1,13 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'util.dart';
-import 'main.dart';
+import 'data/theme.dart';
 
 final Map<String, String> themes = {
 	'light': 'Light',
 	'dark': 'Dark',
 	'darkBlack': 'Dark (pure black)',
-	'locationBased': 'Location Based',
+	'timeBased': 'Time Based',
 };
 
 class _SettingsStatePage extends State<SettingsPage> {
@@ -26,9 +26,9 @@ class _SettingsStatePage extends State<SettingsPage> {
 	Widget build(BuildContext context) {
 		return Scaffold(
 			appBar: AppBar(
-        elevation: Platform.isIOS ? 0 : 4,
-        title: Text('Settings'),
-      ),
+				elevation: Platform.isIOS ? 0 : 4,
+				title: Text('Settings'),
+			),
 			body: ListView(
 				padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
 				children: [
@@ -44,8 +44,8 @@ class _SettingsStatePage extends State<SettingsPage> {
 							onChanged: (newValue) async {
 								setState(() => _theme = newValue);
 								await saveTheme(newValue);
-                ThemeData theme = await getThemeByName(newValue);
-                bloc.changeTheme(theme);
+								ThemeData theme = await getThemeByName(newValue);
+								bloc.changeTheme(theme);
 							},
 							items: themes.keys.map((key) => DropdownMenuItem(
 								value: key,
