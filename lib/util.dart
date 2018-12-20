@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 // TODO: NFC Reader in settings
 // TODO: Stop search
+// TODO: Stroll to current time in timetable
 
 const Map<String, Color> colors = {
 	'bus': Color(0xFFf4B427),
