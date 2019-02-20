@@ -64,10 +64,6 @@ Future<ThemeData> getTimeTheme() async {
 		else nextTime = DateTime(now.year, now.month, now.day, 20).millisecondsSinceEpoch;
 	}
 
-	print('NOW - $now');
-	print('IS DAY - $isDay');
-	print('NEXT SWITCH TIME - ${DateTime.fromMillisecondsSinceEpoch(nextTime)}');
-
 	Future.delayed(Duration(milliseconds: nextTime - now.millisecondsSinceEpoch), () async {
 		String themeName = await getThemeName();
 		if (themeName != 'locationBased') return;
