@@ -11,14 +11,38 @@ TimetablePageState timetableState;
 
 class TimetablePageState extends State<TimetablePage> {
 	bool update = false;
+	bool searching = false;
+
+	List<Stop> searchResults = [];
 
 	void rebuild() {
 		setState(() => update = !update);
 	}
 
-	Widget loadStacks([FetchResponse data]) {
+	Widget showRoutes() {
 		timetableState = this;
-		return StackPage(data != null ? data : FetchResponse(true));
+		return stops.keys.length == 0 ? FutureBuilder<FetchResponse>(
+			future: fetchData(),
+			builder: (_, snapshot) {
+				if (snapshot.connectionState == ConnectionState.done) return StackPage(snapshot.data);
+				return Center(child: CircularProgressIndicator());
+			},
+		) : StackPage(FetchResponse(true));
+	}
+
+	Widget showResults() {
+		return Container(
+			child: ListView.builder(
+				itemCount: searchResults.length,
+				itemBuilder: (context, i) {
+					final Stop stop = searchResults[i];
+					return ListTile(
+						title: Text(stop.name, style: TextStyle(fontSize: 18)),
+						// onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TimePage(_route, stop))),
+					);
+				}
+			),
+		);
 	}
 
 	@override
@@ -28,7 +52,11 @@ class TimetablePageState extends State<TimetablePage> {
 			child: Scaffold(
 				appBar: AppBar(
 					elevation: Platform.isIOS ? 0 : 4,
-					title: Text('Timetable'),
+					title: searching ? TextField(
+						autofocus: true,
+						onChanged: (val) => setState(() => searchResults = searchStops(val)),
+						decoration: InputDecoration(hintText: 'Search...', border: InputBorder.none),
+					) : Text('Timetable'),
 					bottom: TabBar(tabs: [
 						Tab(icon: Icon(Icons.directions_bus, color: colors['bus'])),
 						Tab(icon: Icon(Icons.tram, color: colors['tram'])),
@@ -37,17 +65,16 @@ class TimetablePageState extends State<TimetablePage> {
 						Tab(icon: Icon(Icons.directions_bus, color: colors['expressbus'])),
 						Tab(icon: Icon(Icons.directions_bus, color: colors['nightbus'])),
 					]),
-					actions: [IconButton(icon: Icon(Icons.settings), onPressed: () {
-						Navigator.push(context, MaterialPageRoute(builder: (_) => SettingsPage()));
-					})],
+					actions: [
+						IconButton(icon: Icon(searching ? Icons.close : Icons.search), onPressed: () {
+							setState(() => searching = !searching);
+						}),
+						IconButton(icon: Icon(Icons.settings), onPressed: () {
+							Navigator.push(context, MaterialPageRoute(builder: (_) => SettingsPage()));
+						})
+					],
 				),
-				body: stops.keys.length == 0 ? FutureBuilder<FetchResponse>(
-					future: fetchData(),
-					builder: (_, snapshot) {
-						if (snapshot.connectionState == ConnectionState.done) return loadStacks(snapshot.data);
-						return Center(child: CircularProgressIndicator());
-					},
-				) : loadStacks(),
+				body: searching ? showResults() : showRoutes(),
 			),
 		);
 	}
