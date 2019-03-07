@@ -30,6 +30,10 @@ class TimetablePageState extends State<TimetablePage> {
 		) : StackPage(FetchResponse(true));
 	}
 
+	String joinStopInfo(Stop stop) {
+		return [stop.city, stop.area, stop.street].where((a) => a != null && a.isNotEmpty).join(', ');
+	}
+
 	Widget showResults() {
 		return Container(
 			child: ListView.builder(
@@ -38,7 +42,11 @@ class TimetablePageState extends State<TimetablePage> {
 					final Stop stop = searchResults[i];
 					return ListTile(
 						title: Text(stop.name, style: TextStyle(fontSize: 18)),
+						subtitle: Text(joinStopInfo(stop), style: TextStyle(fontSize: 12)),
 						// onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TimePage(_route, stop))),
+						onTap: () {
+							print(stop.id);
+						},
 					);
 				}
 			),

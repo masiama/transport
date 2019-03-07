@@ -1,5 +1,3 @@
-import '../util.dart';
-
 Map<String, Stop> stops = {};
 Map<String, List<String>> searchCache = {};
 
@@ -51,27 +49,59 @@ class Stop {
 	String id;
 	String name;
 	String asciiName;
+
+	String info = '';
+	String street = '';
+	String area = '';
+	String city = '';
+
 	List<String> routes = [];
 
 	String getValue(List<String> lineItems, int index) {
 		return lineItems.length > index ? lineItems[index].trim() : '';
 	}
 
+	String or(String s1, String s2) {
+		return s1.isNotEmpty ? s1 : s2;
+	}
+
+	Stop clone() {
+		Stop stop = Stop();
+
+		stop.id = this.id;
+		stop.name = this.name;
+		stop.asciiName = this.asciiName;
+		stop.info = this.info;
+		stop.street = this.street;
+		stop.area = this.area;
+		stop.city = this.city;
+		stop.routes = this.routes;
+
+		return stop;
+	}
+
 	void loadValues(List<String> lineItems, Stop prevStop) {
 		this.id = lineItems[0];
+
+		String info = getValue(lineItems, 5);
+		if (info.isNotEmpty || prevStop != null) this.info = or(info, prevStop.info);
+		String street = getValue(lineItems, 6);
+		if (street.isNotEmpty || prevStop != null) this.street = or(street, prevStop.street);
+		String area = getValue(lineItems, 7);
+		if (area.isNotEmpty || prevStop != null) this.area = or(area, prevStop.area);
+		String city = getValue(lineItems, 8);
+		if (city.isNotEmpty || prevStop != null) this.city = or(city, prevStop.city);
 
 		String name = getValue(lineItems, 4);
 		if (name.isEmpty && prevStop != null) {
 			name = prevStop.name;
-			asciiName = prevStop.asciiName;
-			searchCache[prevStop.asciiName] = searchCache[prevStop.asciiName] ?? [];
-			searchCache[prevStop.asciiName].add(id);
+			this.asciiName = prevStop.asciiName;
 		}
-		else {
-			asciiName = toAscii(name);
-			searchCache[asciiName] = searchCache[asciiName] ?? [];
-			searchCache[asciiName].add(id);
-		}
+		else this.asciiName = toAscii(name);
+
+		searchCache[this.asciiName] = searchCache[this.asciiName] ?? [];
+		searchCache[this.asciiName].add(id);
+
 		this.name = name;
 	}
 }
@@ -88,15 +118,42 @@ void loadStops(String text) {
 }
 
 List<Stop> searchStops(String text) {
-	if (text.isEmpty) return [];
+	if (text.length < 2) return [];
+	final String separators = '–—̶­˗“”„ _-.()\'"';
 
-	String l = text.toLowerCase();
-	List<String> result = searchCache.keys.where((s) => s.indexOf(l) > -1).toList();
+	String textAscii = toAscii(text);
+	String textAsciiW = textAscii.replaceAll(new RegExp(r'\W'), '');
+	String textLower = text.toLowerCase().replaceAll(new RegExp(r'\W'), '');
 
-	result.sort((a, b) {
-		int diff = a.indexOf(l) - b.indexOf(l);
-		return diff == 0 ? compare(a, b) : diff;
+	List<Stop> result = [];
+
+	for (var asciiName in searchCache.keys) {
+		int indexOf = asciiName.indexOf(textAscii);
+		if (indexOf == -1 || indexOf != 0 && separators.indexOf(asciiName[indexOf - 1]) < 0) continue;
+
+		List<String> ids = searchCache[asciiName];
+
+		for (var id in ids) {
+			Stop stop = stops[id];
+			if (stop == null) continue;
+			if (textAsciiW != textLower) continue;
+			if (stop.name.toLowerCase().replaceAll(new RegExp(r'\W'), '').indexOf(textLower) == -1) continue;
+
+			result.add(stop.clone());
+		}
+	}
+
+	List<Stop> unique = [];
+	for (var s in result) {
+		int idx = unique.indexWhere((u) => u.name == s.name && u.street == s.street);
+		if (idx > -1) { unique[idx].id += ',${s.id}'; continue; }
+		unique.add(s);
+	}
+	return unique..sort((a, b) {
+		int c = a.name.compareTo(b.name);
+		if (c != 0) return c;
+		int d = a.area.compareTo(b.area);
+		if (d != 0) return d;
+		return a.street.compareTo(b.street);
 	});
-
-	return result.map((name) => stops[searchCache[name][0]]).toList();
 }
