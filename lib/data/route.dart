@@ -1,6 +1,7 @@
 import 'stop.dart';
 
 Map<String, RouteType> routes = {};
+Map<String, bool> usedStops = {};
 
 class StopSchedule {
 	Stop stop;
@@ -83,6 +84,9 @@ void loadRoutes(String text) {
 
 		for (var sid in parts[fld['ROUTESTOPS']].split(',')) {
 			Stop stop = stops[sid];
+			if (stop == null) continue;
+
+			usedStops[sid] = true;
 			if (prevStop != null && prevStop.name == stop.name) continue;
 			prevStop = stop;
 			stop.routes.add(key);
@@ -100,6 +104,8 @@ void loadRoutes(String text) {
 
 		routes[key] = route;
 	}
+
+	stops.removeWhere((id, _) => !usedStops.containsKey(id));
 }
 
 List<String> getAccumulatedTimes(String times) {
