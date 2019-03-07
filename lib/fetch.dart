@@ -17,10 +17,7 @@ class FetchResponse {
 	bool success;
 }
 
-const stopLinks = [
-	'https://saraksti.rigassatiksme.lv/riga/stops.txt',
-	'http://www.marsruti.lv/rigasmikroautobusi/bbus/stops.txt',
-];
+const stopLink = 'https://saraksti.rigassatiksme.lv/riga/stops.txt';
 const routesLinks = [
 	'https://saraksti.rigassatiksme.lv/riga/routes.txt',
 	'http://www.marsruti.lv/rigasmikroautobusi/bbus/routes.txt',
@@ -28,20 +25,18 @@ const routesLinks = [
 
 String dir;
 
-Future<Uint8List> combineLinks(List<String> links) async {
+Future<void> uploadStops() async {
 	final SharedPreferences prefs = await SharedPreferences.getInstance();
 	List<int> bytes = [];
-	for (var i = 0; i < links.length; i++) {
-		final link = links[i];
-		final response = await http.get(link);
-		await prefs.setString(link, DateTime.now().toString());
+  final response = await http.get(stopLink);
+  await prefs.setString(stopLink, DateTime.now().toString());
 
-		final str = utf8.decode(response.bodyBytes);
-		List<String> splt = str.split('\n');
-		if (i > 0) splt = splt.getRange(1, splt.length).toList();
-		bytes.addAll(utf8.encode(splt.join('\n')));
-	}
-	return Uint8List.fromList(bytes);
+  final str = utf8.decode(response.bodyBytes);
+  List<String> splt = str.split('\n');
+  bytes.addAll(utf8.encode(splt.join('\n')));
+
+  final File sfile = File('$dir/stops.txt');
+	await sfile.writeAsBytes(Uint8List.fromList(bytes));
 }
 
 Future<void> uploadRoutes() async {
@@ -80,10 +75,7 @@ Future<void> uploadRoutes() async {
 }
 
 Future<void> updateFiles() async {
-	final stopsBytes = await combineLinks(stopLinks);
-	final File sfile = File('$dir/stops.txt');
-	await sfile.writeAsBytes(stopsBytes);
-
+	await uploadStops();
 	await uploadRoutes();
 }
 
@@ -114,8 +106,8 @@ Future<FetchResponse> fetchData() async {
 		await updateFiles();
 		await prefs.setBool('first', false);
 	} else if (connected) {
-		 final bool update = await toUpdate();
-		 if (update) await updateFiles();
+		final bool update = await toUpdate();
+		if (update) await updateFiles();
 	}
 
 	await parseFiles();
@@ -129,7 +121,7 @@ Future<void> parseFiles() async {
 
 Future<bool> toUpdate() async {
 	final SharedPreferences prefs = await SharedPreferences.getInstance();
-	final List<http.Response> responses = await Future.wait((stopLinks + routesLinks).map((link) => http.head(link)));
+	final List<http.Response> responses = await Future.wait(([stopLink] + routesLinks).map((link) => http.head(link)));
 
 	for (var res in responses) {
 		final str = prefs.getString(res.request.url.toString()) ?? '';
