@@ -6,65 +6,136 @@ import 'trip.dart';
 import 'data/stop.dart';
 import 'data/route.dart';
 
-class TimePage extends StatelessWidget {
-	TimePage(this._route, this._stop);
+class _TimePageState extends State<TimePage> with SingleTickerProviderStateMixin {
+	_TimePageState(this._route, this._stop);
 	final RouteType _route;
 	final Stop _stop;
 
+	Map<String, GlobalKey> _keys = {};
+	Map<String, ScrollController> _scrollControllers = {};
+	TabController _tabController;
+
+	Map<String, Map<String, List<String>>> _times = {};
+	Map<String, String> _currentHour = {};
+	List<String> _weekdays = [];
+
+	void initState() {
+		_times = getTime(_route, _stop);
+		_weekdays = _times.keys.toList();
+		_weekdays.sort();
+
+		int hour = DateTime.now().hour;
+		for (var weekday in _weekdays) {
+			var hours = _times[weekday].keys.map(int.parse);
+			if (hour <= hours.first || hour > hours.last) continue;
+
+			int idx = hours.where((h) => h >= hour).first;
+			_currentHour[weekday] = idx.toString();
+
+			_keys[weekday] = GlobalKey();
+			_keys['${weekday}_0'] = GlobalKey();
+			_scrollControllers[weekday] = ScrollController();
+		}
+
+		_tabController = TabController(vsync: this, length: _weekdays.length)..addListener(() {
+			if (_tabController.indexIsChanging) return;
+			updateScroll(_weekdays[_tabController.index]);
+		});
+
+		WidgetsBinding.instance.addPostFrameCallback((_) => updateScroll(_weekdays.first));
+		super.initState();
+	}
+
+	void updateScroll(String weekday) {
+		GlobalKey key = _keys[weekday];
+		GlobalKey key_0 = _keys['${weekday}_0'];
+		if (key_0 == null) return;
+
+		RenderBox renderBox = key.currentContext.findRenderObject();
+		RenderBox renderBox_0 = key_0.currentContext.findRenderObject();
+		Offset position = renderBox.localToGlobal(Offset.zero);
+		Offset position_0 = renderBox_0.localToGlobal(Offset.zero);
+		_scrollControllers[weekday].animateTo(position.dy - position_0.dy, duration: Duration(microseconds: 1), curve: Curves.linear);
+	}
+
+	GlobalKey getKey(String weekday, String hour) {
+		if (_keys.containsKey('${weekday}_0')) {
+			if (hour == _times[weekday].keys.first) return _keys['${weekday}_0'];
+			if (hour == _currentHour[weekday]) return _keys[weekday];
+		}
+		return null;
+	}
+
 	@override
 	Widget build(BuildContext context) {
-		final times = getTime(_route, _stop);
-		List<String> keys = times.keys.toList();
-		keys.sort();
 		return DefaultTabController(
-			length: times.keys.length,
+			length: _times.keys.length,
 			child: Scaffold(
 				appBar: AppBar(
 					elevation: Platform.isIOS ? 0 : 4,
 					backgroundColor: colors[_route.transport],
 					title: Text(_stop.name),
-					bottom: TabBar(tabs: keys.map((time) => Tab(text: getTimeTitle(time))).toList()),
+					bottom: TabBar(
+						controller: _tabController,
+						tabs: _weekdays.map((weekday) => Tab(text: getTimeTitle(weekday))).toList()
+					),
 				),
-				body: TabBarView(children: keys.map((key) {
-					int i = -1;
-					return ListView(children: times[key].keys.map((h) => Container(
-						padding: const EdgeInsets.all(10),
-						decoration: BoxDecoration(border: Border(bottom: BorderSide(width: 1, color: Colors.grey[700]))),
-						child: Row(
-							crossAxisAlignment: CrossAxisAlignment.start,
-							children: [
-								Container(
-									child: Text(
-										h,
-										textAlign: TextAlign.center,
-										style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-									),
-									margin: const EdgeInsets.only(right: 10),
-									width: 25,
-								),
-								Expanded(child: GridView.extent(
-									physics: const NeverScrollableScrollPhysics(),
-									shrinkWrap: true,
-									maxCrossAxisExtent: 25.0,
-									padding: const EdgeInsets.only(right: 10.0),
-									mainAxisSpacing: 10.0,
-									crossAxisSpacing: 10,
-									children: times[key][h].map((m) {
-										i++;
-										return GestureDetector(
-											child: Center(child: Text(m, style: const TextStyle(fontSize: 16))),
-											onTap: ((i) => () => Navigator.push(
-												context,
-												MaterialPageRoute(builder: (_) => TripPage(_route, _stop, key, i))
-											))(i),
-										);
-									}).toList(),
-								)),
-							],
-						)
-					)).toList());
-				}).toList()),
+				body: TabBarView(
+					controller: _tabController,
+					children: _weekdays.map((weekday) {
+						int i = -1;
+						return ListView(
+							controller: _scrollControllers[weekday],
+							children: _times[weekday].keys.map((hour) => Container(
+								key: getKey(weekday, hour),
+								padding: const EdgeInsets.all(10),
+								decoration: BoxDecoration(border: Border(bottom: BorderSide(width: 1, color: Colors.grey[700]))),
+								child: Row(
+									crossAxisAlignment: CrossAxisAlignment.start,
+									children: [
+										Container(
+											child: Text(
+												hour,
+												textAlign: TextAlign.center,
+												style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+											),
+											margin: const EdgeInsets.only(right: 10),
+											width: 25,
+										),
+										Expanded(child: GridView.extent(
+											physics: const NeverScrollableScrollPhysics(),
+											shrinkWrap: true,
+											maxCrossAxisExtent: 25.0,
+											padding: const EdgeInsets.only(right: 10.0),
+											mainAxisSpacing: 10.0,
+											crossAxisSpacing: 10,
+											children: _times[weekday][hour].map((m) {
+												i++;
+												return GestureDetector(
+													child: Center(child: Text(m, style: const TextStyle(fontSize: 16))),
+													onTap: ((i) => () => Navigator.push(
+														context,
+														MaterialPageRoute(builder: (_) => TripPage(_route, _stop, weekday, i))
+													))(i),
+												);
+											}).toList(),
+										)),
+									],
+								)
+							)).toList()
+						);
+					}).toList()
+				),
 			),
 		);
 	}
+}
+
+class TimePage extends StatefulWidget {
+	TimePage(this._route, this._stop);
+	final RouteType _route;
+	final Stop _stop;
+
+	@override
+	_TimePageState createState() => _TimePageState(_route, _stop);
 }
