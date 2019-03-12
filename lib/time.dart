@@ -24,8 +24,16 @@ class _TimePageState extends State<TimePage> with SingleTickerProviderStateMixin
 		_weekdays = _times.keys.toList();
 		_weekdays.sort();
 
-		int hour = DateTime.now().hour;
-		for (var weekday in _weekdays) {
+		DateTime now = DateTime.now();
+		int hour = now.hour;
+
+		String day = now.weekday.toString();
+		int selected = 0;
+		for (var i = 0; i < _weekdays.length; i++) {
+			String weekday = _weekdays[i];
+
+			if (weekday.indexOf(day) > -1) selected = i;
+
 			var hours = _times[weekday].keys.map(int.parse);
 			if (hour <= hours.first || hour > hours.last) continue;
 
@@ -37,12 +45,12 @@ class _TimePageState extends State<TimePage> with SingleTickerProviderStateMixin
 			_scrollControllers[weekday] = ScrollController();
 		}
 
-		_tabController = TabController(vsync: this, length: _weekdays.length)..addListener(() {
+		_tabController = TabController(vsync: this, length: _weekdays.length, initialIndex: selected)..addListener(() {
 			if (_tabController.indexIsChanging) return;
 			updateScroll(_weekdays[_tabController.index]);
 		});
 
-		WidgetsBinding.instance.addPostFrameCallback((_) => updateScroll(_weekdays.first));
+		WidgetsBinding.instance.addPostFrameCallback((_) => updateScroll(_weekdays[selected]));
 		super.initState();
 	}
 
