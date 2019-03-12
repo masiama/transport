@@ -64,14 +64,10 @@ int compare(String a, String b) {
 
 String getTimeTitle(String weekdays) {
 	if (weekdays == '12345') return 'Working days';
-	if (weekdays == '1234') return 'Monday - Thursday';
-	if (weekdays == '2345') return 'Tuesday - Friday';
 	if (weekdays == '123456') return 'Monday - Saturday';
 	if (weekdays == '67') return 'Weekend';
-	if (weekdays == '5') return 'Friday';
 	if (weekdays == '6') return 'Saturday';
 	if (weekdays == '7') return 'Sunday';
-	if (weekdays == '1') return 'Monday';
 	return 'all_days';
 }
 
