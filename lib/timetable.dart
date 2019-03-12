@@ -6,6 +6,7 @@ import 'num_list.dart';
 import 'settings.dart';
 import 'fetch.dart';
 import 'data/stop.dart';
+import 'data/route.dart';
 
 TimetablePageState timetableState;
 
@@ -30,8 +31,38 @@ class TimetablePageState extends State<TimetablePage> {
 		) : StackPage(FetchResponse(true));
 	}
 
-	String joinStopInfo(Stop stop) {
-		return [stop.city, stop.area, stop.street].where((a) => a != null && a.isNotEmpty).join(', ');
+	Widget getStopRoutes(Stop stop) {
+		List<String> ids = stop.id.split(',');
+		Map<String, RouteType> rs = {};
+
+		for (String id in ids) stops[id].routes.forEach((r) {
+			RouteType route = routes[r];
+			if (rs[route.number] == null) rs[route.number] = route;
+		});
+
+		List<RouteType> routesList = rs.values.toList()..sort((a, b) {
+			int diff = transportOrder[a.transport] - transportOrder[b.transport];
+			if (diff != 0) return diff;
+			return compare(a.sortKey, b.sortKey);
+		});
+
+		return GridView.extent(
+			physics: const NeverScrollableScrollPhysics(),
+			shrinkWrap: true,
+			padding: EdgeInsets.only(top: 5),
+			maxCrossAxisExtent: 25.0,
+			childAspectRatio: 1.5,
+			mainAxisSpacing: 2.0,
+			crossAxisSpacing: 2.0,
+			children: routesList.map((m) => Container(
+				color: colors[m.transport],
+				child: Center(child: Text(m.number, style: TextStyle(
+					fontSize: 12,
+					color: Theme.of(context).canvasColor,
+					fontWeight: FontWeight.w600,
+				))),
+			)).toList(),
+		);
 	}
 
 	Widget showResults() {
@@ -41,8 +72,9 @@ class TimetablePageState extends State<TimetablePage> {
 				itemBuilder: (context, i) {
 					final Stop stop = searchResults[i];
 					return ListTile(
+						dense: true,
 						title: Text(stop.name, style: TextStyle(fontSize: 18)),
-						subtitle: Text(joinStopInfo(stop), style: TextStyle(fontSize: 12)),
+						subtitle: getStopRoutes(stop),
 						// onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TimePage(_route, stop))),
 						onTap: () {
 							print(stop.id);

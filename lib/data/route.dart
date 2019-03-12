@@ -2,6 +2,14 @@ import 'stop.dart';
 
 Map<String, RouteType> routes = {};
 Map<String, bool> usedStops = {};
+Map<String, int> transportOrder = {
+	'tram': 1,
+	'trol': 2,
+	'bus': 3,
+	'minibus': 4,
+	'expressbus': 5,
+	'nightbus': 6,
+};
 
 class StopSchedule {
 	Stop stop;
@@ -101,6 +109,7 @@ void loadRoutes(String text) {
 		route.type = type;
 		route.order = order;
 		route.times = explodeTimes(lines[i + 1], rstops);
+		route.sortKey = key;
 
 		routes[key] = route;
 	}
