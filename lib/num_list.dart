@@ -15,6 +15,7 @@ class NumList extends StatelessWidget {
 			padding: const EdgeInsets.all(5.0),
 			mainAxisSpacing: 5.0,
 			crossAxisSpacing: 5.0,
+			childAspectRatio: 1.5,
 			children: routes.map((r) => Tile(r)).toList(),
 		);
 	}
