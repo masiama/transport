@@ -86,43 +86,57 @@ class TimetablePageState extends State<TimetablePage> {
 		);
 	}
 
+	void openSearch() {
+		/*
+			FIXME: Hide and show keyboard to get rid of "[...] on inactive InputConnection" errors
+						https://github.com/flutter/flutter/issues/23749
+		*/
+		setState(() => searching = true);
+	}
+
+	Future<bool> closeSearch() async {
+		searchController.clear();
+		searchResults = [];
+		setState(() => searching = false);
+		return false;
+	}
+
 	@override
 	Widget build(BuildContext context) {
 		return DefaultTabController(
 			length: 6,
-			child: Scaffold(
-				appBar: AppBar(
-					elevation: Platform.isIOS ? 0 : 4,
-					title: searching ? TextField(
-						autofocus: true,
-						controller: searchController,
-						onChanged: (val) => setState(() => searchResults = searchStops(val)),
-						decoration: InputDecoration(hintText: 'Search...', border: InputBorder.none),
-					) : Text('Timetable'),
-					bottom: searching ? null : TabBar(tabs: [
-						Tab(icon: Icon(Icons.directions_bus, color: colors['bus'])),
-						Tab(icon: Icon(Icons.tram, color: colors['tram'])),
-						Tab(icon: Icon(Icons.directions_bus, color: colors['trol'])),
-						Tab(icon: Icon(Icons.directions_bus, color: colors['minibus'])),
-						Tab(icon: Icon(Icons.directions_bus, color: colors['expressbus'])),
-						Tab(icon: Icon(Icons.directions_bus, color: colors['nightbus'])),
-					]),
-					actions: [
-						IconButton(icon: Icon(searching ? Icons.close : Icons.search), onPressed: () {
-							// FIXME: Hide and show keyboard to get rid of [*] on inactive InputConnection errors
-							//				(https://github.com/flutter/flutter/issues/23749)
-							searchController.clear();
-							searchResults = [];
-							setState(() => searching = !searching);
-						}),
-						IconButton(icon: Icon(Icons.settings), onPressed: () {
-							Navigator.push(context, MaterialPageRoute(builder: (_) => SettingsPage()));
-						})
-					],
+			child: WillPopScope(
+				onWillPop: searching ? closeSearch : null,
+				child: Scaffold(
+					appBar: AppBar(
+						elevation: Platform.isIOS ? 0 : 4,
+						title: searching ? TextField(
+							autofocus: true,
+							controller: searchController,
+							onChanged: (val) => setState(() => searchResults = searchStops(val)),
+							decoration: InputDecoration(hintText: 'Search...', border: InputBorder.none),
+						) : Text('Timetable'),
+						bottom: searching ? null : TabBar(tabs: [
+							Tab(icon: Icon(Icons.directions_bus, color: colors['bus'])),
+							Tab(icon: Icon(Icons.tram, color: colors['tram'])),
+							Tab(icon: Icon(Icons.directions_bus, color: colors['trol'])),
+							Tab(icon: Icon(Icons.directions_bus, color: colors['minibus'])),
+							Tab(icon: Icon(Icons.directions_bus, color: colors['expressbus'])),
+							Tab(icon: Icon(Icons.directions_bus, color: colors['nightbus'])),
+						]),
+						actions: [
+							IconButton(
+								icon: Icon(searching ? Icons.close : Icons.search),
+								onPressed: searching ? closeSearch : openSearch,
+							),
+							IconButton(icon: Icon(Icons.settings), onPressed: () {
+								Navigator.push(context, MaterialPageRoute(builder: (_) => SettingsPage()));
+							})
+						],
+					),
+					body: searching ? showResults() : showRoutes(),
 				),
-				body: searching ? showResults() : showRoutes(),
-			),
-		);
+		));
 	}
 }
 
