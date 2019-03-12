@@ -14,6 +14,7 @@ class TimetablePageState extends State<TimetablePage> {
 	bool update = false;
 	bool searching = false;
 
+	TextEditingController searchController = TextEditingController();
 	List<Stop> searchResults = [];
 
 	void rebuild() {
@@ -94,6 +95,7 @@ class TimetablePageState extends State<TimetablePage> {
 					elevation: Platform.isIOS ? 0 : 4,
 					title: searching ? TextField(
 						autofocus: true,
+						controller: searchController,
 						onChanged: (val) => setState(() => searchResults = searchStops(val)),
 						decoration: InputDecoration(hintText: 'Search...', border: InputBorder.none),
 					) : Text('Timetable'),
@@ -107,6 +109,10 @@ class TimetablePageState extends State<TimetablePage> {
 					]),
 					actions: [
 						IconButton(icon: Icon(searching ? Icons.close : Icons.search), onPressed: () {
+							// FIXME: Hide and show keyboard to get rid of [*] on inactive InputConnection errors
+							//				(https://github.com/flutter/flutter/issues/23749)
+							searchController.clear();
+							searchResults = [];
 							setState(() => searching = !searching);
 						}),
 						IconButton(icon: Icon(Icons.settings), onPressed: () {
