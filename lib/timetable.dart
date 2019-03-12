@@ -97,7 +97,7 @@ class TimetablePageState extends State<TimetablePage> {
 						onChanged: (val) => setState(() => searchResults = searchStops(val)),
 						decoration: InputDecoration(hintText: 'Search...', border: InputBorder.none),
 					) : Text('Timetable'),
-					bottom: TabBar(tabs: [
+					bottom: searching ? null : TabBar(tabs: [
 						Tab(icon: Icon(Icons.directions_bus, color: colors['bus'])),
 						Tab(icon: Icon(Icons.tram, color: colors['tram'])),
 						Tab(icon: Icon(Icons.directions_bus, color: colors['trol'])),
