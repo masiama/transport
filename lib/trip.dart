@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'rs.dart';
 import 'util.dart';
+import 'time.dart';
 import 'data/stop.dart';
 import 'data/route.dart';
 
@@ -24,27 +25,30 @@ class TripPage extends StatelessWidget {
 				itemCount: _route.stops.length,
 				itemBuilder: (_, i) {
 					final Stop stop = _route.stops[i];
-					return Container(
-						padding: const EdgeInsets.all(10),
-						decoration: BoxDecoration(border: Border(bottom: BorderSide(width: 1, color: Colors.grey[700]))),
-						child: Row(
-							crossAxisAlignment: CrossAxisAlignment.start,
-							children: [
-								Container(
-									child: Text(
-										times[stop.id],
-										textAlign: TextAlign.center,
-										style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+					return GestureDetector(
+						onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TimePage(_route, stop))),
+						child: Container(
+							padding: const EdgeInsets.all(10),
+							decoration: BoxDecoration(border: Border(bottom: BorderSide(width: 1, color: Colors.grey[700]))),
+							child: Row(
+								crossAxisAlignment: CrossAxisAlignment.start,
+								children: [
+									Container(
+										child: Text(
+											times[stop.id],
+											textAlign: TextAlign.center,
+											style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+										),
+										margin: const EdgeInsets.only(right: 10),
+										width: 70,
 									),
-									margin: const EdgeInsets.only(right: 10),
-									width: 70,
-								),
-								Expanded(child: Container(child: Text(stop.name, style: TextStyle(
-									fontSize: 20,
-									fontWeight: stop.id == _stop.id ? FontWeight.w900 : FontWeight.normal,
-								)))),
-							]
-						)
+									Expanded(child: Container(child: Text(stop.name, style: TextStyle(
+										fontSize: 20,
+										fontWeight: stop.id == _stop.id ? FontWeight.w900 : FontWeight.normal,
+									)))),
+								]
+							)
+						),
 					);
 				}
 			)),
