@@ -135,9 +135,7 @@ List<Stop> searchStops(String text) {
 
 		for (String id in ids) {
 			final Stop stop = stops[id];
-			if (stop == null) continue;
-			if (textAsciiW != textLower) continue;
-			if (stop.name.toLowerCase().replaceAll(RegExp(r'\W'), '').indexOf(textLower) == -1) continue;
+			if (stop == null || textAsciiW != textLower) continue;
 
 			result.add(stop.clone());
 		}
