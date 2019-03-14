@@ -20,6 +20,7 @@ class TripPage extends StatelessWidget {
 			appBar: AppBar(
 				elevation: Platform.isIOS ? 0 : 4,
 				backgroundColor: colors[_route.transport],
+				title: Text(_route.name),
 			),
 			body: Container(child: ListView.builder(
 				itemCount: _route.stops.length,
