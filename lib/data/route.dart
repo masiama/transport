@@ -1,4 +1,5 @@
 import 'stop.dart';
+import '../util.dart';
 
 Map<String, RouteType> routes = {};
 Map<String, bool> usedStops = {};
@@ -18,7 +19,6 @@ class StopSchedule {
 }
 
 class RouteType {
-	String id;
 	int order;
 	String transport;
 	String number;
@@ -28,10 +28,6 @@ class RouteType {
 	List<StopSchedule> times;
 
 	String sortKey;
-
-	String getKey() {
-		return '$number;$transport;$type';
-	}
 
 	String getKeyForType(String type) {
 		return '$number;$transport;$type';
@@ -182,4 +178,15 @@ List<StopSchedule> explodeTimes(String timesString, List<Stop> stops) {
 	}
 
 	return list;
+}
+
+int sortRoutes(RouteType a, RouteType b) {
+	int diff = transportOrder[a.transport] - transportOrder[b.transport];
+	if (diff != 0) return diff;
+	if (a.number != b.number) return compare(a.number, b.number);
+
+	List<String> typesA = a.type.split('-');
+	List<String> typesB = b.type.split('-');
+	if (typesA[0] != typesB[0]) return compare(typesA[0], typesB[0]);
+	return compare(typesA[1], typesB[1]);
 }

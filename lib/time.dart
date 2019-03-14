@@ -15,8 +15,8 @@ class _TimePageState extends State<TimePage> with SingleTickerProviderStateMixin
 	Map<String, ScrollController> _scrollControllers = {};
 	TabController _tabController;
 
-	Map<String, Map<String, List<String>>> _times = {};
-	Map<String, String> _currentHour = {};
+	Map<String, Map<int, List<int>>> _times = {};
+	Map<String, int> _currentHour = {};
 	List<String> _weekdays = [];
 
 	void initState() {
@@ -34,11 +34,11 @@ class _TimePageState extends State<TimePage> with SingleTickerProviderStateMixin
 
 			if (weekday.indexOf(day) > -1) selected = i;
 
-			var hours = _times[weekday].keys.map(int.parse);
+			var hours = _times[weekday].keys;
 			if (hour <= hours.first || hour > hours.last) continue;
 
 			int idx = hours.where((h) => h >= hour).first;
-			_currentHour[weekday] = idx.toString();
+			_currentHour[weekday] = idx;
 
 			_keys[weekday] = GlobalKey();
 			_keys['${weekday}_0'] = GlobalKey();
@@ -66,7 +66,7 @@ class _TimePageState extends State<TimePage> with SingleTickerProviderStateMixin
 		_scrollControllers[weekday].animateTo(position.dy - position_0.dy, duration: Duration(microseconds: 1), curve: Curves.linear);
 	}
 
-	GlobalKey getKey(String weekday, String hour) {
+	GlobalKey getKey(String weekday, int hour) {
 		if (_keys.containsKey('${weekday}_0')) {
 			if (hour == _times[weekday].keys.first) return _keys['${weekday}_0'];
 			if (hour == _currentHour[weekday]) return _keys[weekday];
@@ -103,7 +103,7 @@ class _TimePageState extends State<TimePage> with SingleTickerProviderStateMixin
 									children: [
 										Container(
 											child: Text(
-												hour,
+												(hour % 24).toString(),
 												textAlign: TextAlign.center,
 												style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
 											),
@@ -117,10 +117,10 @@ class _TimePageState extends State<TimePage> with SingleTickerProviderStateMixin
 											padding: const EdgeInsets.only(right: 10.0),
 											mainAxisSpacing: 10.0,
 											crossAxisSpacing: 10,
-											children: _times[weekday][hour].map((m) {
+											children: _times[weekday][hour].map((minute) {
 												i++;
 												return GestureDetector(
-													child: Center(child: Text(m, style: const TextStyle(fontSize: 16))),
+													child: Center(child: Text(minute.toString().padLeft(2, '0'), style: const TextStyle(fontSize: 16))),
 													onTap: ((i) => () => Navigator.push(
 														context,
 														MaterialPageRoute(builder: (_) => TripPage(_route, _stop, weekday, i))

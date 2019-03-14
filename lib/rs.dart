@@ -1,4 +1,3 @@
-import 'util.dart';
 import 'data/route.dart';
 import 'data/stop.dart';
 
@@ -18,28 +17,25 @@ List<RouteType> filterRoutes(String stransport, [String snum = '', String stype 
 		final String key = '$number;$transport';
 		if (routesUnique.containsKey(key) && snum.isEmpty && order != 1) continue;
 
-		final RouteType r = route;
-		r.sortKey = number;
-
-		results.add(r);
-		if (stype.isEmpty && key.isNotEmpty) routesUnique[key] = r;
+		results.add(route);
+		if (stype.isEmpty && key.isNotEmpty) routesUnique[key] = route;
 	}
-	results.sort((a, b) => compare(a.sortKey, b.sortKey));
+	results.sort(sortRoutes);
 
 	return results;
 }
 
-Map<String, Map<String, List<String>>> getTime(RouteType route, Stop stop) {
+Map<String, Map<int, List<int>>> getTime(RouteType route, Stop stop) {
 	final List<StopSchedule> schedules = route.times.where((time) => time.stop.id == stop.id).toList();
-	final Map<String, Map<String, List<String>>> sections = {};
+	final Map<String, Map<int, List<int>>> sections = {};
 
 	for (final schedule in schedules) {
 		sections[schedule.weekdays] = {};
 		final List<String> times = schedule.times.split(',');
 		for (final t in times) {
 			final int time = num.parse(t);
-			final String h = (time / 60 % 24).floor().toString();
-			final String m = (time % 60).toString().padLeft(2, '0');
+			final int h = (time / 60).floor();
+			final int m = time % 60;
 
 			if (sections[schedule.weekdays][h] == null) sections[schedule.weekdays][h] = [];
 			sections[schedule.weekdays][h].add(m);

@@ -5,6 +5,7 @@ import 'util.dart';
 import 'num_list.dart';
 import 'settings.dart';
 import 'fetch.dart';
+import 'search_time.dart';
 import 'data/stop.dart';
 import 'data/route.dart';
 
@@ -32,19 +33,11 @@ class TimetablePageState extends State<TimetablePage> {
 		) : StackPage(FetchResponse(true));
 	}
 
-	Widget getStopRoutes(Stop stop) {
-		List<String> ids = stop.id.split(',');
+	Widget getStopSubtitle(List<RouteType> routes) {
 		Map<String, RouteType> rs = {};
 
-		for (String id in ids) stops[id].routes.forEach((r) {
-			RouteType route = routes[r];
+		routes.forEach((route) {
 			if (rs[route.number] == null) rs[route.number] = route;
-		});
-
-		List<RouteType> routesList = rs.values.toList()..sort((a, b) {
-			int diff = transportOrder[a.transport] - transportOrder[b.transport];
-			if (diff != 0) return diff;
-			return compare(a.sortKey, b.sortKey);
 		});
 
 		return GridView.extent(
@@ -55,7 +48,7 @@ class TimetablePageState extends State<TimetablePage> {
 			childAspectRatio: 1.5,
 			mainAxisSpacing: 2.0,
 			crossAxisSpacing: 2.0,
-			children: routesList.map((m) => Container(
+			children: rs.values.toList().map((m) => Container(
 				color: colors[m.transport],
 				child: Center(child: Text(m.number, style: TextStyle(
 					fontSize: 12,
@@ -66,20 +59,27 @@ class TimetablePageState extends State<TimetablePage> {
 		);
 	}
 
+	List<RouteType> getStopRoutes(Stop stop) {
+		List<String> ids = stop.id.split(',');
+		Map<String, RouteType> rs = {};
+
+		for (String id in ids) stops[id].routes.forEach((r) => rs[r] = routes[r]);
+
+		return rs.values.toList()..sort(sortRoutes);
+	}
+
 	Widget showResults() {
 		return Container(
 			child: ListView.builder(
 				itemCount: searchResults.length,
 				itemBuilder: (context, i) {
 					final Stop stop = searchResults[i];
+					final List<RouteType> routes = getStopRoutes(stop);
 					return ListTile(
 						dense: true,
 						title: Text(stop.name, style: TextStyle(fontSize: 18)),
-						subtitle: getStopRoutes(stop),
-						// onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TimePage(_route, stop))),
-						onTap: () {
-							print(stop.id);
-						},
+						subtitle: getStopSubtitle(routes),
+						onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => SearchTimePage(routes, stop))),
 					);
 				}
 			),
