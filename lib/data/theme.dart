@@ -7,7 +7,7 @@ import 'package:flutter/services.dart';
 
 import '../sun_calc.dart';
 
-final themes = {
+final Map<String, ThemeData> themes = {
 	'light': ThemeData(
 		primaryColor: Colors.white,
 		canvasColor: Colors.grey[200],
@@ -41,15 +41,15 @@ Future<ThemeData> getTimeTheme() async {
 
 	bool isDay;
 	int nextTime;
-	final int msDay = 1000 * 60 * 60 * 24 * 1000;
+	const int msDay = 1000 * 60 * 60 * 24 * 1000;
 	final DateTime now = DateTime.now();
 	final DateTime tomorrow = DateTime.fromMicrosecondsSinceEpoch(now.millisecondsSinceEpoch * 1000 + msDay);
 
 	try { currentLocation = await location.getLocation(); } on PlatformException {}
 
 	if (currentLocation.isNotEmpty) {
-		SunCalc sunCalcN = SunCalc(now, currentLocation['longitude'], currentLocation['latitude']);
-		SunCalc sunCalcT = SunCalc(tomorrow, currentLocation['longitude'], currentLocation['latitude']);
+		final SunCalc sunCalcN = SunCalc(now, currentLocation['longitude'], currentLocation['latitude']);
+		final SunCalc sunCalcT = SunCalc(tomorrow, currentLocation['longitude'], currentLocation['latitude']);
 
 		isDay = now.isAfter(sunCalcN.times['dawn']) && now.isBefore(sunCalcN.times['dusk']);
 
@@ -65,7 +65,7 @@ Future<ThemeData> getTimeTheme() async {
 	}
 
 	Future.delayed(Duration(milliseconds: nextTime - now.millisecondsSinceEpoch), () async {
-		String themeName = await getThemeName();
+		final String themeName = await getThemeName();
 		if (themeName != 'locationBased') return;
 		final ThemeData theme = await getThemeByName('locationBased');
 		bloc.changeTheme(theme);

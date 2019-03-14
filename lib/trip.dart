@@ -14,7 +14,7 @@ class TripPage extends StatelessWidget {
 
 	@override
 	Widget build(BuildContext context) {
-		final times = getTrip(_route, _weekdays, _index);
+		final Map<String, String> times = getTrip(_route, _weekdays, _index);
 		return Scaffold(
 			appBar: AppBar(
 				elevation: Platform.isIOS ? 0 : 4,
@@ -41,7 +41,7 @@ class TripPage extends StatelessWidget {
 								),
 								Expanded(child: Container(child: Text(stop.name, style: TextStyle(
 									fontSize: 20,
-									fontWeight: stop.id == _stop.id ? FontWeight.w600 : FontWeight.normal,
+									fontWeight: stop.id == _stop.id ? FontWeight.w900 : FontWeight.normal,
 								)))),
 							]
 						)

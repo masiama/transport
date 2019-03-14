@@ -29,7 +29,7 @@ class _StopsPageState extends State<StopsPage> {
 					)).toList()));
 				}) : Text(_route.name),
 				actions: routes.containsKey(oppositeRoute) ? [IconButton(
-					icon: Icon(Icons.swap_vert),
+					icon: const Icon(Icons.swap_vert),
 					onPressed: () => setState(() => _route = routes[oppositeRoute]),
 				)] : [],
 			),
@@ -39,7 +39,7 @@ class _StopsPageState extends State<StopsPage> {
 					itemBuilder: (context, i) {
 						final Stop stop = stops[i];
 						return ListTile(
-							title: Text(stop.name, style: TextStyle(fontSize: 18)),
+							title: Text(stop.name, style: const TextStyle(fontSize: 18)),
 							onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TimePage(_route, stop))),
 						);
 					}

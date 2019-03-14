@@ -7,18 +7,17 @@ import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
 
 import 'util.dart';
-import 'http_date.dart';
 import 'data/stop.dart';
 import 'data/route.dart';
 
 class FetchResponse {
 	FetchResponse(this.success, [this.error]);
-	String error;
-	bool success;
+	final String error;
+	final bool success;
 }
 
-const stopLink = 'https://saraksti.rigassatiksme.lv/riga/stops.txt';
-const routesLinks = [
+const String stopLink = 'https://saraksti.rigassatiksme.lv/riga/stops.txt';
+const List<String> routesLinks = [
 	'https://saraksti.rigassatiksme.lv/riga/routes.txt',
 	'http://www.marsruti.lv/rigasmikroautobusi/bbus/routes.txt',
 ];
@@ -27,38 +26,35 @@ String dir;
 
 Future<void> uploadStops() async {
 	final SharedPreferences prefs = await SharedPreferences.getInstance();
-	List<int> bytes = [];
-  final response = await http.get(stopLink);
-  await prefs.setString(stopLink, DateTime.now().toString());
+	final response = await http.get(stopLink);
+	await prefs.setString(stopLink, DateTime.now().toString());
 
-  final str = utf8.decode(response.bodyBytes);
-  List<String> splt = str.split('\n');
-  bytes.addAll(utf8.encode(splt.join('\n')));
+	final str = utf8.decode(response.bodyBytes);
 
-  final File sfile = File('$dir/stops.txt');
-	await sfile.writeAsBytes(Uint8List.fromList(bytes));
+	final File sfile = File('$dir/stops.txt');
+	await sfile.writeAsBytes(Uint8List.fromList(utf8.encode(str)));
 }
 
 Future<void> uploadRoutes() async {
 	final SharedPreferences prefs = await SharedPreferences.getInstance();
-	List<String> lines = [], newLines = [];
-	for (var i = 0; i < routesLinks.length; i++) {
+	final List<String> lines = [], newLines = [];
+	for (int i = 0; i < routesLinks.length; i++) {
 		final link = routesLinks[i];
 		final response = await http.get(link);
 		await prefs.setString(link, DateTime.now().toString());
 
 		final str = utf8.decode(response.bodyBytes);
 		List<String> splt = str.split('\n');
-		if (i > 0) splt = splt.getRange(1, splt.length).toList();
+		if (i > 0) splt = splt.getRange(1, splt.length);
 		lines.addAll(splt);
 	}
 
 	newLines.add('RouteNum;Transport;RouteType;RouteName;RouteStops');
 	final fields = lines[0].toUpperCase().split(';'), fld = {};
-	for (var i = 0; i < fields.length; i++) fld[fields[i].trim()] = i;
+	for (int i = 0; i < fields.length; i++) fld[fields[i].trim()] = i;
 
 	String authority;
-	for (var i = 1; i < lines.length; i++) {
+	for (int i = 1; i < lines.length; i++) {
 		final String line = lines[i];
 		final List<String> parts = line.split(';');
 
@@ -85,8 +81,8 @@ Future<bool> isFirstRun() async {
 }
 
 Future<void> removeData() async {
-	File sfile = File('$dir/stops.txt');
-	File rfile = File('$dir/routes.txt');
+	final File sfile = File('$dir/stops.txt');
+	final File rfile = File('$dir/routes.txt');
 	if (await sfile.exists()) await sfile.delete();
 	if (await rfile.exists()) await rfile.delete();
 

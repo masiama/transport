@@ -15,7 +15,7 @@ class TimetablePageState extends State<TimetablePage> {
 	bool update = false;
 	bool searching = false;
 
-	TextEditingController searchController = TextEditingController();
+	final TextEditingController searchController = TextEditingController();
 	List<Stop> searchResults = [];
 
 	void rebuild() {
@@ -34,7 +34,7 @@ class TimetablePageState extends State<TimetablePage> {
 	}
 
 	Widget getStopSubtitle(List<RouteType> routes) {
-		Map<String, RouteType> rs = {};
+		final Map<String, RouteType> rs = {};
 
 		routes.forEach((route) {
 			if (rs[route.number] == null) rs[route.number] = route;
@@ -43,12 +43,12 @@ class TimetablePageState extends State<TimetablePage> {
 		return GridView.extent(
 			physics: const NeverScrollableScrollPhysics(),
 			shrinkWrap: true,
-			padding: EdgeInsets.only(top: 5),
+			padding: const EdgeInsets.only(top: 5),
 			maxCrossAxisExtent: 25.0,
 			childAspectRatio: 1.5,
 			mainAxisSpacing: 2.0,
 			crossAxisSpacing: 2.0,
-			children: rs.values.toList().map((m) => Container(
+			children: rs.values.map((m) => Container(
 				color: colors[m.transport],
 				child: Center(child: Text(m.number, style: TextStyle(
 					fontSize: 12,
@@ -60,8 +60,8 @@ class TimetablePageState extends State<TimetablePage> {
 	}
 
 	List<RouteType> getStopRoutes(Stop stop) {
-		List<String> ids = stop.id.split(',');
-		Map<String, RouteType> rs = {};
+		final List<String> ids = stop.id.split(',');
+		final Map<String, RouteType> rs = {};
 
 		for (String id in ids) stops[id].routes.forEach((r) => rs[r] = routes[r]);
 
@@ -77,7 +77,7 @@ class TimetablePageState extends State<TimetablePage> {
 					final List<RouteType> routes = getStopRoutes(stop);
 					return ListTile(
 						dense: true,
-						title: Text(stop.name, style: TextStyle(fontSize: 18)),
+						title: Text(stop.name, style: const TextStyle(fontSize: 18)),
 						subtitle: getStopSubtitle(routes),
 						onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => SearchTimePage(routes, stop))),
 					);
@@ -114,8 +114,8 @@ class TimetablePageState extends State<TimetablePage> {
 							autofocus: true,
 							controller: searchController,
 							onChanged: (val) => setState(() => searchResults = searchStops(val)),
-							decoration: InputDecoration(hintText: 'Search...', border: InputBorder.none),
-						) : Text('Timetable'),
+							decoration: const InputDecoration(hintText: 'Search...', border: InputBorder.none),
+						) : const Text('Timetable'),
 						bottom: searching ? null : TabBar(tabs: [
 							Tab(icon: Icon(Icons.directions_bus, color: colors['bus'])),
 							Tab(icon: Icon(Icons.tram, color: colors['tram'])),
@@ -129,7 +129,7 @@ class TimetablePageState extends State<TimetablePage> {
 								icon: Icon(searching ? Icons.close : Icons.search),
 								onPressed: searching ? closeSearch : openSearch,
 							),
-							IconButton(icon: Icon(Icons.settings), onPressed: () {
+							IconButton(icon: const Icon(Icons.settings), onPressed: () {
 								Navigator.push(context, MaterialPageRoute(builder: (_) => SettingsPage()));
 							})
 						],
@@ -151,7 +151,7 @@ class StackPage extends StatelessWidget {
 
 	@override
 	Widget build(BuildContext context) {
-		final response = _response;
+		final FetchResponse response = _response;
 
 		if (response.success) return TabBarView(children: [
 			NumList('bus'),
@@ -162,12 +162,12 @@ class StackPage extends StatelessWidget {
 			NumList('nightbus'),
 		]);
 
-		Container createLine(String str) => Container(child: Text(str), margin: EdgeInsets.only(bottom: 10));
+		Container createLine(String str) => Container(child: Text(str), margin: const EdgeInsets.only(bottom: 10));
 
-		List<Widget> errorLines = [
+		final List<Widget> errorLines = [
 			createLine('ERROR'),
 			(response.error ?? '').isNotEmpty ? createLine(response.error) : null,
-			RaisedButton(child: Text('Try again'), onPressed: () => timetableState.rebuild()),
+			RaisedButton(child: const Text('Try again'), onPressed: () => timetableState.rebuild()),
 		]..removeWhere((widget) => widget == null);
 
 		return Center(child: IntrinsicHeight(child: Column(children: errorLines)));

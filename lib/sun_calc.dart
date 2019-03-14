@@ -1,18 +1,18 @@
 import 'dart:math';
 
-const msPerDay = 1000 * 60 * 60 * 24;
-const julian1970 = 2440588.0;
-const julian2000 = 2451545.0;
-const rad = pi / 180;
-final sept28Date = DateTime.utc(2017, DateTime.september, 28, 12);
-const sept28Obliquity = 23.43697;
-const obliquityShift = 2.4 / (365.2422 * 40000 * 24);
-const siderealZero = 280.1470;
-const deltaSidereal = 360.9856235;
-const meanAnomalyZero = 357.5291;
-const deltaMeanAnomaly = 0.98560028;
-const planetocentricPerihelion = rad * 102.9372;
-const sunTransit = const [0.0009, 0.0053, -0.0068, 1.0000000];
+const int msPerDay = 1000 * 60 * 60 * 24;
+const double julian1970 = 2440588.0;
+const double julian2000 = 2451545.0;
+const double rad = pi / 180;
+final DateTime sept28Date = DateTime.utc(2017, DateTime.september, 28, 12);
+const double sept28Obliquity = 23.43697;
+const double obliquityShift = 2.4 / (365.2422 * 40000 * 24);
+const double siderealZero = 280.1470;
+const double deltaSidereal = 360.9856235;
+const double meanAnomalyZero = 357.5291;
+const double deltaMeanAnomaly = 0.98560028;
+const double planetocentricPerihelion = rad * 102.9372;
+const List<double> sunTransit = const [0.0009, 0.0053, -0.0068, 1.0000000];
 
 class SunCalc {
 	static const _times = const [
@@ -47,31 +47,28 @@ class SunCalc {
 	}
 
 	double eclipticLongitude({ num days }) {
-		double mA = meanAnomaly(days ?? daysSince2000);
-		double center = rad * (1.9148 * sin(mA) + 0.02 * sin(2 * mA) + 0.0003 * sin(3 * mA));
+		final double mA = meanAnomaly(days ?? daysSince2000);
+		final double center = rad * (1.9148 * sin(mA) + 0.02 * sin(2 * mA) + 0.0003 * sin(3 * mA));
 		return mA + center + planetocentricPerihelion + pi;
 	}
 
 	Map<String, DateTime> getTimes() {
-		double jNoon, jSet, jRise;
-		Map<String, DateTime> solarTimes;
+		final int julianCycle = (daysSince2000 - sunTransit[0] - longitude / (2 * pi)).round();
+		final double noonTransit = approxTransit(0, longitude, julianCycle);
+		final double mA = meanAnomaly(noonTransit);
+		final double eclipticLng = eclipticLongitude(days: noonTransit);
+		final double dec = declination(lng: eclipticLng);
 
-		int julianCycle = (daysSince2000 - sunTransit[0] - longitude / (2 * pi)).round();
-		double noonTransit = approxTransit(0, longitude, julianCycle);
-		double mA = meanAnomaly(noonTransit);
-		double eclipticLng = eclipticLongitude(days: noonTransit);
-		double dec = declination(lng: eclipticLng);
+		final double jNoon = transitJulian(noonTransit, mA, eclipticLng);
 
-		jNoon = transitJulian(noonTransit, mA, eclipticLng);
-
-		solarTimes = {
+		final Map<String, DateTime> solarTimes = {
 			'noon': dateFromJulian(jNoon),
 			'nadir': dateFromJulian(jNoon - 0.5),
 		};
 
 		_times.forEach((time) {
-			jSet = getSetJulian(time[0], longitude, latitude, dec, julianCycle, mA, eclipticLng);
-			jRise = 2 * jNoon - jSet;
+			final double jSet = getSetJulian(time[0], longitude, latitude, dec, julianCycle, mA, eclipticLng);
+			final double jRise = 2 * jNoon - jSet;
 			solarTimes[time[1]] = dateFromJulian(jRise);
 			solarTimes[time[2]] = dateFromJulian(jSet);
 		});
@@ -79,11 +76,11 @@ class SunCalc {
 		return solarTimes;
 	}
 
-	double meanAnomaly(num days) {
+	static double meanAnomaly(num days) {
 		return rad * (meanAnomalyZero + deltaMeanAnomaly * days);
 	}
 
-	double declination({double lng, double lat}) {
+	double declination({ double lng, double lat }) {
 		if (lng == null) lng = eclipticCoords['lng'];
 		if (lat == null) lat = eclipticCoords['lat'];
 		return asin((sin(lat) * cos(obliquity)) + (cos(lat) * sin(obliquity) * sin(lng)));
@@ -98,7 +95,7 @@ class SunCalc {
 	}
 
 	static double trueObliquity(DateTime date) {
-		int hoursPassed = date.toUtc().difference(sept28Date).inHours;
+		final int hoursPassed = date.toUtc().difference(sept28Date).inHours;
 		return rad * (sept28Obliquity - (hoursPassed * obliquityShift));
 	}
 
@@ -119,8 +116,8 @@ class SunCalc {
 		double mA,
 		double eclipticLng
 	) {
-		double hAngle = acos((sin(altitude) - sin(latitude) * sin(declination)) / (cos(latitude) * cos(declination)));
-		double setTransit = approxTransit(hAngle, longitude, julianCycle);
+		final double hAngle = acos((sin(altitude) - sin(latitude) * sin(declination)) / (cos(latitude) * cos(declination)));
+		final double setTransit = approxTransit(hAngle, longitude, julianCycle);
 		return transitJulian(setTransit, mA, eclipticLng);
 	}
 }

@@ -11,12 +11,12 @@ class _TimePageState extends State<TimePage> with SingleTickerProviderStateMixin
 	final RouteType _route;
 	final Stop _stop;
 
-	Map<String, GlobalKey> _keys = {};
-	Map<String, ScrollController> _scrollControllers = {};
+	final Map<String, GlobalKey> _keys = {};
+	final Map<String, ScrollController> _scrollControllers = {};
 	TabController _tabController;
 
 	Map<String, Map<int, List<int>>> _times = {};
-	Map<String, int> _currentHour = {};
+	final Map<String, int> _currentHour = {};
 	List<String> _weekdays = [];
 
 	void initState() {
@@ -24,20 +24,19 @@ class _TimePageState extends State<TimePage> with SingleTickerProviderStateMixin
 		_weekdays = _times.keys.toList();
 		_weekdays.sort();
 
-		DateTime now = DateTime.now();
-		int hour = now.hour;
+		final DateTime now = DateTime.now();
+		final int hour = now.hour;
+		final String day = now.weekday.toString();
 
-		String day = now.weekday.toString();
 		int selected = 0;
-		for (var i = 0; i < _weekdays.length; i++) {
-			String weekday = _weekdays[i];
-
+		for (int i = 0; i < _weekdays.length; i++) {
+			final String weekday = _weekdays[i];
 			if (weekday.indexOf(day) > -1) selected = i;
 
-			var hours = _times[weekday].keys;
+			final Iterable<int> hours = _times[weekday].keys;
 			if (hour <= hours.first || hour > hours.last) continue;
 
-			int idx = hours.where((h) => h >= hour).first;
+			final int idx = hours.where((h) => h >= hour).first;
 			_currentHour[weekday] = idx;
 
 			_keys[weekday] = GlobalKey();
@@ -55,15 +54,15 @@ class _TimePageState extends State<TimePage> with SingleTickerProviderStateMixin
 	}
 
 	void updateScroll(String weekday) {
-		GlobalKey key = _keys[weekday];
-		GlobalKey key_0 = _keys['${weekday}_0'];
+		final GlobalKey key = _keys[weekday];
+		final GlobalKey key_0 = _keys['${weekday}_0'];
 		if (key_0 == null) return;
 
-		RenderBox renderBox = key.currentContext.findRenderObject();
-		RenderBox renderBox_0 = key_0.currentContext.findRenderObject();
-		Offset position = renderBox.localToGlobal(Offset.zero);
-		Offset position_0 = renderBox_0.localToGlobal(Offset.zero);
-		_scrollControllers[weekday].animateTo(position.dy - position_0.dy, duration: Duration(microseconds: 1), curve: Curves.linear);
+		final RenderBox renderBox = key.currentContext.findRenderObject();
+		final RenderBox renderBox_0 = key_0.currentContext.findRenderObject();
+		final Offset position = renderBox.localToGlobal(Offset.zero);
+		final Offset position_0 = renderBox_0.localToGlobal(Offset.zero);
+		_scrollControllers[weekday].animateTo(position.dy - position_0.dy, duration: const Duration(microseconds: 1), curve: Curves.linear);
 	}
 
 	GlobalKey getKey(String weekday, int hour) {

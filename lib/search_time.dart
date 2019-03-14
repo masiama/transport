@@ -12,13 +12,13 @@ class SearchTimePage extends StatelessWidget {
 	final Stop _stop;
 
 	List<Widget> timeToWidget(BuildContext context, Map<int, List<int>> times) {
-		double max = MediaQuery.of(context).size.width;
+		final double max = MediaQuery.of(context).size.width;
 		double size = 32.0;
 
 		List<Widget> children = [];
-		int oneH = 13;
-		int twoH = 25;
-		int twoM = 16;
+		const int oneH = 13;
+		const int twoH = 25;
+		const int twoM = 16;
 
 		Widget createText(String text, double size, [bool large = false]) => Container(
 			margin: EdgeInsets.only(right: large ? 5.0: 2.0),
@@ -26,13 +26,13 @@ class SearchTimePage extends StatelessWidget {
 		);
 
 		for (int h in times.keys) {
-			List<Widget> temp = [];
+			final List<Widget> temp = [];
 
 			double hSize = ((h % 24) < 10 ? oneH : twoH) + 2.0;
 			temp.add(createText((h % 24).toString(), 22.0));
 
 			for (int m in times[h]) {
-				bool large = m == times[h].last;
+				final bool large = m == times[h].last;
 				hSize += twoM + (large ? 5.0 : 2.0);
 				temp.add(createText(m.toString().padLeft(2, '0'), 14.0, large));
 			}
@@ -48,8 +48,8 @@ class SearchTimePage extends StatelessWidget {
 
 	@override
 	Widget build(BuildContext context) {
-		Map<String, Stop> stops = {};
-		List<String> ids = _stop.id.split(',');
+		final Map<String, Stop> stops = {};
+		final List<String> ids = _stop.id.split(',');
 		_routes.forEach((route) {
 			stops[route.id] = route.stops.firstWhere((s) => ids.contains(s.id));
 		});
@@ -63,55 +63,57 @@ class SearchTimePage extends StatelessWidget {
 				itemCount: _routes.length * 2,
 				separatorBuilder: (context, i) => i % 2 == 1 ? Divider(color: Theme.of(context).textTheme.title.color) : Container(),
 				itemBuilder: (context, i) {
-					RouteType route = _routes[(i / 2).floor()];
-					Stop stop = stops[route.id];
+					final RouteType route = _routes[(i / 2).floor()];
+					final Stop stop = stops[route.id];
 
 					ListTile createTile(Widget title) => ListTile(
+						dense: true,
 						title: title,
 						onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TimePage(route, stop))),
 					);
 
 					if (i % 2 == 0) return createTile(Row(children: [
 						Container(
-							padding: EdgeInsets.all(2.0),
-							margin: EdgeInsets.only(right: 10.0),
+							padding: const EdgeInsets.all(2.0),
+							margin: const EdgeInsets.only(right: 10.0),
 							color: colors[route.transport],
 							child: Center(child: Text(route.number, style: TextStyle(
+								fontSize: 18.0,
 								color: Theme.of(context).canvasColor,
 								fontWeight: FontWeight.w600,
 							))),
 						),
-						Text(route.name)
+						Text(route.name, style: const TextStyle(fontSize: 18.0))
 					]));
 
-					Map<String, Map<int, List<int>>> _times = getTime(route, stop);
+					final Map<String, Map<int, List<int>>> _times = getTime(route, stop);
 
-					DateTime now = DateTime.now();
-					int hour = now.hour;
-					int minute = now.minute;
+					final DateTime now = DateTime.now();
+					final int hour = now.hour;
+					final int minute = now.minute;
 
-					var weekdays = _times.keys.where((w) => w.indexOf(now.weekday.toString()) > -1);
-					if (weekdays.length == 0) return createTile(Text('Does not operate today'));
+					final Iterable<String> weekdays = _times.keys.where((w) => w.indexOf(now.weekday.toString()) > -1);
+					if (weekdays.length == 0) return createTile(const Text('Does not operate today'));
 
-					String weekday = weekdays.first;
-					var hours = _times[weekday].keys;
+					final String weekday = weekdays.first;
+					final Iterable<int> hours = _times[weekday].keys;
 
 					if (hour <= hours.first) return createTile(Row(
 						crossAxisAlignment: CrossAxisAlignment.start,
 						children: timeToWidget(context, _times[weekday]),
 					));
 
-					List<int> minutesL = _times[weekday][hours.last];
+					final List<int> minutesL = _times[weekday][hours.last];
 					if (hour > hours.last || hour == hours.last && minute > minutesL.last) {
 						return createTile(Text('Last departure was at ${hours.last}:${minutesL.last}'));
 					}
 
-					Map<int, List<int>> times = {};
+					final Map<int, List<int>> times = {};
 					for (int h in hours) {
 						if (h > hour) times[h] = _times[weekday][h];
 						if (h != hour) continue;
 
-						List<int> temp = [];
+						final List<int> temp = [];
 						for (int m in _times[weekday][h]) {
 							if (m >= minute) temp.add(m);
 						}

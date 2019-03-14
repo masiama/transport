@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'data/theme.dart';
 
-final Map<String, String> themes = {
+const Map<String, String> themes = {
 	'light': 'Light',
 	'dark': 'Dark',
 	'darkBlack': 'Dark (pure black)',
@@ -15,7 +15,7 @@ class _SettingsStatePage extends State<SettingsPage> {
 	@override
 	void initState() {
 		(() async {
-			final theme = await getThemeName();
+			final String theme = await getThemeName();
 			setState(() => _theme = theme);
 		})();
 		super.initState();
@@ -26,7 +26,7 @@ class _SettingsStatePage extends State<SettingsPage> {
 		return Scaffold(
 			appBar: AppBar(
 				elevation: Platform.isIOS ? 0 : 4,
-				title: Text('Settings'),
+				title: const Text('Settings'),
 			),
 			body: ListView(
 				padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -43,7 +43,7 @@ class _SettingsStatePage extends State<SettingsPage> {
 							onChanged: (newValue) async {
 								setState(() => _theme = newValue);
 								await saveThemeName(newValue);
-								ThemeData theme = await getThemeByName(newValue);
+								final ThemeData theme = await getThemeByName(newValue);
 								bloc.changeTheme(theme);
 							},
 							items: themes.keys.map((key) => DropdownMenuItem(

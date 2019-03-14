@@ -1,9 +1,9 @@
 import 'stop.dart';
 import '../util.dart';
 
-Map<String, RouteType> routes = {};
-Map<String, bool> usedStops = {};
-Map<String, int> transportOrder = {
+final Map<String, RouteType> routes = {};
+final Map<String, bool> usedStops = {};
+final Map<String, int> transportOrder = {
 	'tram': 1,
 	'trol': 2,
 	'bus': 3,
@@ -36,12 +36,14 @@ class RouteType {
 void loadRoutes(String text) {
 	final List<String> lines = text.split('\n');
 
-	final fields = lines[0].toUpperCase().split(';'), fld = {};
-	for (var i = 0; i < fields.length; i++) fld[fields[i].trim()] = i;
+	final List<String> fields = lines[0].toUpperCase().split(';');
+	final Map<String, int> fld = {};
+	for (int i = 0; i < fields.length; i++) fld[fields[i].trim()] = i;
 
-	var order = 0, done = [];
+	int order = 0;
+	List<String> done = [];
 	String number = '', directionName, transport;
-	for (var i = 1; i < lines.length; i += 2) {
+	for (int i = 1; i < lines.length; i += 2) {
 		final String line = lines[i];
 		final List<String> parts = line.split(';');
 
@@ -85,8 +87,8 @@ void loadRoutes(String text) {
 		List<Stop> rstops = [];
 		Stop prevStop;
 
-		for (var sid in parts[fld['ROUTESTOPS']].split(',')) {
-			Stop stop = stops[sid];
+		for (String sid in parts[fld['ROUTESTOPS']].split(',')) {
+			final Stop stop = stops[sid];
 			if (stop == null) continue;
 
 			usedStops[sid] = true;
@@ -112,67 +114,57 @@ void loadRoutes(String text) {
 	stops.removeWhere((id, _) => !usedStops.containsKey(id));
 }
 
-List<String> getAccumulatedTimes(String times) {
-	final List<String> array = times.split(',');
-	List<String> result = List<String>(array.length);
+List<int> getAccumulatedTimes(String times) {
+	final Iterable<int> array = times.split(',').map(int.parse);
+	final List<int> result = [];
 	int sum = 0;
-	for (int i = 0; i < array.length; i++) {
-		sum += num.parse(array[i]);
-		result[i] = sum.toString();
+	for (int i in array) {
+		sum += i;
+		result.add(sum);
 	}
 	return result;
 }
 
 List<StopSchedule> explodeTimes(String timesString, List<Stop> stops) {
-	List<StopSchedule> list = [];
-	List<String> workdays = [];
-	List<String> asdasd = [];
-	final timesArray = timesString.split(',,');
-	final times = getAccumulatedTimes(timesArray[0]);
-	final weekdayMetadata = timesArray[3].split(',');
-	for (var m = 0; m < stops.length; m++) {
-		var stop = stops[m];
-		var timesStartIndex = 0;
-		var correctionItems = timesArray[m + 3].split(',');
-		var timeCorrection = m > 0 ? num.parse(correctionItems[0]) : 0;
-		var countLimit = (m <= 0 || correctionItems.length <= 1) ? 1000 : num.parse(correctionItems[1]);
-		var correctionIndex = 1;
-		var count = 0;
-		var i = 0;
-		while (i < weekdayMetadata.length) {
-			var timesEndIndex;
-			var weekdays = weekdayMetadata[i];
-			timesEndIndex = i + 1 >= weekdayMetadata.length ? times.length : num.parse(weekdayMetadata[i + 1]);
-			var timesValue = '';
+	final List<StopSchedule> list = [];
+	final List<String> timesArray = timesString.split(',,');
+	final List<int> times = getAccumulatedTimes(timesArray[0]);
+	final List<String> weekdayMetadata = timesArray[3].split(',');
+	for (int m = 0; m < stops.length; m++) {
+		int timesStartIndex = 0;
+		final List<int> correctionItems = timesArray[m + 3].split(',').map(int.parse).toList();
+		int timeCorrection = m > 0 ? correctionItems[0] : 0;
+		int countLimit = (m <= 0 || correctionItems.length <= 1) ? 1000 : correctionItems[1];
+		int correctionIndex = 1;
+		int count = 0;
+		for (int i = 0; i < weekdayMetadata.length; i += 2) {
+			String timesValue = '';
+			final int timesEndIndex = i + 1 >= weekdayMetadata.length ? times.length : int.parse(weekdayMetadata[i + 1]);
 			for (int k = timesStartIndex; k < timesEndIndex; k++) {
 				if (k != timesStartIndex) timesValue += ',';
 				count++;
 				if (count > countLimit) {
 					correctionIndex++;
-					timeCorrection += num.parse(correctionItems[correctionIndex]) - 5;
+					timeCorrection += correctionItems[correctionIndex] - 5;
 					if (correctionIndex + 1 < correctionItems.length) {
 						correctionIndex++;
-						countLimit = num.parse(correctionItems[correctionIndex]);
+						countLimit = correctionItems[correctionIndex];
 					}
 					else countLimit = 1000;
 					count = 1;
 				}
-				int newTime = num.parse(times[k]) + timeCorrection;
+				final int newTime = times[k] + timeCorrection;
 				timesValue += newTime.toString();
-				times[k] = newTime.toString();
+				times[k] = newTime;
 			}
 			if (timesValue.isNotEmpty) {
-				workdays.add(weekdays);
-				asdasd.add(timesValue.toString());
 				final s = StopSchedule();
-				s.stop = stop;
-				s.weekdays = weekdays;
-				s.times = timesValue.toString();
+				s.stop = stops[m];
+				s.weekdays = weekdayMetadata[i];
+				s.times = timesValue;
 				list.add(s);
 			}
 			timesStartIndex = timesEndIndex;
-			i += 2;
-			if (i >= weekdayMetadata.length) break;
 		}
 	}
 
@@ -180,12 +172,12 @@ List<StopSchedule> explodeTimes(String timesString, List<Stop> stops) {
 }
 
 int sortRoutes(RouteType a, RouteType b) {
-	int diff = transportOrder[a.transport] - transportOrder[b.transport];
+	final int diff = transportOrder[a.transport] - transportOrder[b.transport];
 	if (diff != 0) return diff;
 	if (a.number != b.number) return compare(a.number, b.number);
 
-	List<String> typesA = a.type.split('-');
-	List<String> typesB = b.type.split('-');
+	final List<String> typesA = a.type.split('-');
+	final List<String> typesB = b.type.split('-');
 	if (typesA[0] != typesB[0]) return compare(typesA[0], typesB[0]);
 	return compare(typesA[1], typesB[1]);
 }

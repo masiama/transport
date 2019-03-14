@@ -1,7 +1,7 @@
-Map<String, Stop> stops = {};
-Map<String, List<String>> searchCache = {};
+final Map<String, Stop> stops = {};
+final Map<String, List<String>> searchCache = {};
 
-Map<String, String> accentMap = {
+const Map<String, String> accentMap = {
 	'\u{0105}': 'a',
 	'\u{00E4}': 'a',
 	'\u{0101}': 'a',
@@ -35,10 +35,10 @@ Map<String, String> accentMap = {
 };
 
 String toAscii(String str) {
-	List<String> arr = str.toLowerCase().split('');
+	final List<String> arr = str.toLowerCase().split('');
 
-	for (var i = arr.length; --i >= 0;) {
-		var ascii = accentMap[arr[i]];
+	for (int i = 0; i < arr.length; i++) {
+		final String ascii = accentMap[arr[i]];
 		if (ascii != null) arr[i] = ascii;
 	}
 
@@ -66,7 +66,7 @@ class Stop {
 	}
 
 	Stop clone() {
-		Stop stop = Stop();
+		final Stop stop = Stop();
 
 		stop.id = this.id;
 		stop.name = this.name;
@@ -83,13 +83,13 @@ class Stop {
 	void loadValues(List<String> lineItems, Stop prevStop) {
 		this.id = lineItems[0];
 
-		String info = getValue(lineItems, 5);
+		final String info = getValue(lineItems, 5);
 		if (info.isNotEmpty || prevStop != null) this.info = or(info, prevStop.info);
-		String street = getValue(lineItems, 6);
+		final String street = getValue(lineItems, 6);
 		if (street.isNotEmpty || prevStop != null) this.street = or(street, prevStop.street);
-		String area = getValue(lineItems, 7);
+		final String area = getValue(lineItems, 7);
 		if (area.isNotEmpty || prevStop != null) this.area = or(area, prevStop.area);
-		String city = getValue(lineItems, 8);
+		final String city = getValue(lineItems, 8);
 		if (city.isNotEmpty || prevStop != null) this.city = or(city, prevStop.city);
 
 		String name = getValue(lineItems, 4);
@@ -109,7 +109,7 @@ class Stop {
 void loadStops(String text) {
 	Stop prevStop;
 	final List<String> lines = text.split('\n');
-	for (var i = 1; i < lines.length - 1; i++) {
+	for (int i = 1; i < lines.length - 1; i++) {
 		final Stop stop = Stop();
 		stop.loadValues(lines[i].split(';'), prevStop);
 		if (stop.name.isNotEmpty) stops[stop.id] = stop;
@@ -119,40 +119,40 @@ void loadStops(String text) {
 
 List<Stop> searchStops(String text) {
 	if (text.length < 2) return [];
-	final String separators = '–—̶­˗“”„ _-.()\'"';
+	const String separators = '–—̶­˗“”„ _-.()\'"';
 
-	String textAscii = toAscii(text);
-	String textAsciiW = textAscii.replaceAll(new RegExp(r'\W'), '');
-	String textLower = text.toLowerCase().replaceAll(new RegExp(r'\W'), '');
+	final String textAscii = toAscii(text);
+	final String textAsciiW = textAscii.replaceAll(RegExp(r'\W'), '');
+	final String textLower = text.toLowerCase().replaceAll(RegExp(r'\W'), '');
 
-	List<Stop> result = [];
+	final List<Stop> result = [];
 
-	for (var asciiName in searchCache.keys) {
-		int indexOf = asciiName.indexOf(textAscii);
+	for (String asciiName in searchCache.keys) {
+		final int indexOf = asciiName.indexOf(textAscii);
 		if (indexOf == -1 || indexOf != 0 && separators.indexOf(asciiName[indexOf - 1]) < 0) continue;
 
-		List<String> ids = searchCache[asciiName];
+		final List<String> ids = searchCache[asciiName];
 
-		for (var id in ids) {
-			Stop stop = stops[id];
+		for (String id in ids) {
+			final Stop stop = stops[id];
 			if (stop == null) continue;
 			if (textAsciiW != textLower) continue;
-			if (stop.name.toLowerCase().replaceAll(new RegExp(r'\W'), '').indexOf(textLower) == -1) continue;
+			if (stop.name.toLowerCase().replaceAll(RegExp(r'\W'), '').indexOf(textLower) == -1) continue;
 
 			result.add(stop.clone());
 		}
 	}
 
-	List<Stop> unique = [];
-	for (var s in result) {
-		int idx = unique.indexWhere((u) => u.name == s.name && u.street == s.street);
+	final List<Stop> unique = [];
+	for (Stop s in result) {
+		final int idx = unique.indexWhere((u) => u.name == s.name && u.street == s.street);
 		if (idx > -1) { unique[idx].id += ',${s.id}'; continue; }
 		unique.add(s);
 	}
 	return unique..sort((a, b) {
-		int c = a.name.compareTo(b.name);
+		final int c = a.name.compareTo(b.name);
 		if (c != 0) return c;
-		int d = a.area.compareTo(b.area);
+		final int d = a.area.compareTo(b.area);
 		if (d != 0) return d;
 		return a.street.compareTo(b.street);
 	});
