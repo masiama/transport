@@ -45,7 +45,7 @@ Future<void> uploadRoutes() async {
 
 		final str = utf8.decode(response.bodyBytes);
 		List<String> splt = str.split('\n');
-		if (i > 0) splt = splt.getRange(1, splt.length);
+		if (i > 0) splt = splt.getRange(1, splt.length).toList();
 		lines.addAll(splt);
 	}
 
