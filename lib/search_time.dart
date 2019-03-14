@@ -51,7 +51,7 @@ class SearchTimePage extends StatelessWidget {
 		Map<String, Stop> stops = {};
 		List<String> ids = _stop.id.split(',');
 		_routes.forEach((route) {
-			stops[route.sortKey] = route.stops.firstWhere((s) => ids.contains(s.id));
+			stops[route.id] = route.stops.firstWhere((s) => ids.contains(s.id));
 		});
 
 		return Scaffold(
@@ -64,7 +64,7 @@ class SearchTimePage extends StatelessWidget {
 				separatorBuilder: (context, i) => i % 2 == 1 ? Divider(color: Theme.of(context).textTheme.title.color) : Container(),
 				itemBuilder: (context, i) {
 					RouteType route = _routes[(i / 2).floor()];
-					Stop stop = stops[route.sortKey];
+					Stop stop = stops[route.id];
 
 					ListTile createTile(Widget title) => ListTile(
 						title: title,

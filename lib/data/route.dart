@@ -19,6 +19,7 @@ class StopSchedule {
 }
 
 class RouteType {
+	String id;
 	int order;
 	String transport;
 	String number;
@@ -26,8 +27,6 @@ class RouteType {
 	String type;
 	List<Stop> stops;
 	List<StopSchedule> times;
-
-	String sortKey;
 
 	String getKeyForType(String type) {
 		return '$number;$transport;$type';
@@ -98,6 +97,7 @@ void loadRoutes(String text) {
 		}
 
 		final RouteType route = RouteType();
+		route.id = key;
 		route.transport = transport;
 		route.number = number;
 		route.name = directionName;
@@ -105,7 +105,6 @@ void loadRoutes(String text) {
 		route.type = type;
 		route.order = order;
 		route.times = explodeTimes(lines[i + 1], rstops);
-		route.sortKey = key;
 
 		routes[key] = route;
 	}
