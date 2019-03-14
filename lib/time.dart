@@ -96,7 +96,7 @@ class _TimePageState extends State<TimePage> with SingleTickerProviderStateMixin
 							children: _times[weekday].keys.map((hour) => Container(
 								key: getKey(weekday, hour),
 								padding: const EdgeInsets.all(10),
-								decoration: BoxDecoration(border: Border(bottom: BorderSide(width: 1, color: Colors.grey[700]))),
+								decoration: BoxDecoration(border: Border(bottom: BorderSide(width: 1, color: Theme.of(context).dividerColor))),
 								child: Row(
 									crossAxisAlignment: CrossAxisAlignment.start,
 									children: [
