@@ -4,6 +4,7 @@ const int msPerDay = 1000 * 60 * 60 * 24;
 const double julian1970 = 2440588.0;
 const double julian2000 = 2451545.0;
 const double rad = pi / 180;
+const double altitude = -6 * rad;
 final DateTime sept28Date = DateTime.utc(2017, DateTime.september, 28, 12);
 const double sept28Obliquity = 23.43697;
 const double obliquityShift = 2.4 / (365.2422 * 40000 * 24);
@@ -15,15 +16,6 @@ const double planetocentricPerihelion = rad * 102.9372;
 const List<double> sunTransit = const [0.0009, 0.0053, -0.0068, 1.0000000];
 
 class SunCalc {
-  static const _times = const [
-    const [-0.833 * rad, 'sunrise', 'sunset'],
-    const [-0.3 * rad, 'sunriseEnd', 'sunsetStart'],
-    const [-6 * rad, 'dawn', 'dusk'],
-    const [-12 * rad, 'nauticalDawn', 'nauticalDusk'],
-    const [-18 * rad, 'nightEnd', 'night'],
-    const [6 * rad, 'goldenHourEnd', 'goldenHour'],
-  ];
-
   final DateTime date;
   final num _longitude;
   final num _latitude;
@@ -59,21 +51,13 @@ class SunCalc {
     final double eclipticLng = eclipticLongitude(days: noonTransit);
     final double dec = declination(lng: eclipticLng);
 
-    final double jNoon = transitJulian(noonTransit, mA, eclipticLng);
+    final double jSet = getSetJulian(longitude, latitude, dec, julianCycle, mA, eclipticLng);
+    final double jRise = 2 * transitJulian(noonTransit, mA, eclipticLng) - jSet;
 
-    final Map<String, DateTime> solarTimes = {
-      'noon': dateFromJulian(jNoon),
-      'nadir': dateFromJulian(jNoon - 0.5),
+    return {
+      'dawn': dateFromJulian(jRise),
+      'dusk': dateFromJulian(jSet),
     };
-
-    _times.forEach((time) {
-      final double jSet = getSetJulian(time[0], longitude, latitude, dec, julianCycle, mA, eclipticLng);
-      final double jRise = 2 * jNoon - jSet;
-      solarTimes[time[1]] = dateFromJulian(jRise);
-      solarTimes[time[2]] = dateFromJulian(jSet);
-    });
-
-    return solarTimes;
   }
 
   static double meanAnomaly(num days) {
@@ -108,7 +92,6 @@ class SunCalc {
   }
 
   static double getSetJulian(
-    double altitude,
     double longitude,
     double latitude,
     double declination,
