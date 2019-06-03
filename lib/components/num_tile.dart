@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import '../data/route.dart';
 import '../util.dart';
 import '../stops.dart';
@@ -13,11 +14,14 @@ class Tile extends StatelessWidget {
       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => StopsPage(_route))),
       child: Container(
         color: colors[_route.transport],
-        child: Center(child: Text(_route.number, style: TextStyle(
-          fontSize: 30,
-          color: Theme.of(context).canvasColor,
-          fontWeight: FontWeight.w600,
-        ))),
+        child: Center(child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 5.0),
+          child: AutoSizeText(_route.number, style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 30.0,
+            color: Theme.of(context).primaryColor
+          ))
+        )),
       ),
     );
   }
