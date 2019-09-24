@@ -13,7 +13,10 @@ class Tile extends StatelessWidget {
     return GestureDetector(
       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => StopsPage(_route))),
       child: Container(
-        color: colors[_route.transport],
+        decoration: BoxDecoration(
+          color: colors[_route.transport],
+          borderRadius: BorderRadius.all(Radius.circular(4.0)),
+        ),
         child: Center(child: Container(
           padding: EdgeInsets.symmetric(horizontal: 5.0),
           child: AutoSizeText(_route.number, style: TextStyle(
